@@ -78,6 +78,14 @@ document.querySelectorAll('.add-to-cart-button')
             quantity:  1
             });
         }
-        console.log(cart);
+
+        //calulate the total quantity of items in the cart
+        let totalQuantity = 0;
+        cart.forEach((item) => {
+            totalQuantity += item.quantity;
+        });
+        
+        document.querySelector('.cart-quantity').innerText = totalQuantity;
+
     })
 });
