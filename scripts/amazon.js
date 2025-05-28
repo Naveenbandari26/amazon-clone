@@ -19,13 +19,13 @@ products.forEach(product => {
             <img class="product-rating-stars"
               src="images/ratings/rating-${product.rating.stars*10}.png">
             <div class="product-rating-count link-primary">
-                ${product.rating.reviews} 
+                ${product.rating.count} 
             </div>
           </div>
 
           <div class="product-price">
             <span class="product-price-amount">
-              $${product.price}
+              $${(product.price/100).toFixed(2)}
             </span>
           </div>
 
@@ -80,14 +80,18 @@ document.querySelectorAll('.add-to-cart-button')
             quantity:  1
             });
         }
-
-        //calulate the total quantity of items in the cart
-        let totalQuantity = 0;
         cart.forEach((item) => {
-            totalQuantity += item.quantity;
+            if (item.productId === productId) {
+                item.quantity++;
+            }
         });
-        
-        document.querySelector('.cart-quantity').innerText = totalQuantity;
-
+        document.querySelector('.cart-quantity').innerText = cart.length;
     })
 });
+
+ cart.forEach((item) => {
+            if (item.productId === productId) {
+                item.quantity++;
+            }
+        });
+        document.querySelector('.cart-quantity').innerText = cart.length;
