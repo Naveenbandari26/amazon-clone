@@ -115,30 +115,66 @@ document.querySelectorAll('.delete-quantity-link').forEach((link) => {
     });
 });
 
-// Add event listeners for delivery options
+// Move total price calculation into a function for reusability
+const calculateTotalPrice = () => {
+    let total = 0;
+    let deliveryTotal = 0;
+
+    cart.forEach(cartItem => {
+        const productId = cartItem.productId;
+        const matchedItem = products.find(product => product.id === productId);
+        if (matchedItem) {
+            total += (matchedItem.price / 100) * cartItem.quantity;
+            
+            // Get selected delivery option for this product
+            const selectedDelivery = document.querySelector(`input[name="${productId}"]:checked`);
+            if (selectedDelivery) {
+                deliveryTotal += parseFloat(selectedDelivery.dataset.deliveryPrice);
+            }
+        }
+    });
+
+    return { itemsTotal: total, deliveryTotal, finalTotal: total + deliveryTotal };
+};
+
+const updatePriceSummary = () => {
+    const { itemsTotal, deliveryTotal, finalTotal } = calculateTotalPrice();
+    
+    // Update shipping cost
+    const deliveryMoneyElement = document.querySelector('.shipping-money');
+    if (deliveryMoneyElement) {
+        deliveryMoneyElement.textContent = `$${deliveryTotal.toFixed(2)}`;
+    }
+    const totalBeforeTax = document.querySelector('.shipping-money-2');
+    if (totalBeforeTax) {
+        totalBeforeTax.textContent = `$${finalTotal.toFixed(2)}`;
+    }
+    document.querySelector('.afterTax').textContent=`$${(finalTotal /10).toFixed(2)}`;
+    document.querySelector('.final-cost').textContent = `$${(finalTotal + (finalTotal / 10)).toFixed(2)}`;
+    // Update total price
+    document.querySelector('.payment-summary-money').textContent = `$${finalTotal.toFixed(2)}`;
+};
+
+// Update the delivery options event listener
 document.querySelectorAll('.delivery-option-input').forEach((input) => {
     input.addEventListener('change', () => {
         const deliveryDate = input.dataset.deliveryDate;
         const productId = input.name;
         
-        // Find and update the specific delivery date element for this product
+        // Update delivery date display
         const deliveryDateElement = document.getElementById(`delivery-date-${productId}`);
         if (deliveryDateElement) {
             deliveryDateElement.textContent = `Delivery date: ${deliveryDate}`;
         }
+
+        // Update all price displays
+        updatePriceSummary();
     });
 });
 
+// Initial price calculation
+updatePriceSummary();
 
-let totalPrice = 0;
-cart.forEach(cartItem => {
-    const productId = cartItem.productId;
-    const matchedItem = products.find(product => product.id === productId);
-    if (matchedItem) {
-        totalPrice += (matchedItem.price / 100) * cartItem.quantity;
-    }
-});
-console.log('Total Price:', totalPrice);
-
-
-document.querySelectorAll('.cart-quantity').innerText = cart.length+" "+"items";
+// Update cart quantity displays
+document.querySelector('.cart-quantity').innerText = `${cart.length} items`;
+document.querySelector('.cart-items-count').innerText = cart.length;
