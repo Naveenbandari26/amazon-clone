@@ -1,6 +1,6 @@
 import { cart, deleteCartItem } from "../data/cart.js";
 import { products } from "../data/products.js";
-
+import {orders} from "./order.js";
 const getDeliveryDate = (daysToAdd) => {
   const date = new Date();
   date.setDate(date.getDate() + daysToAdd);
@@ -108,6 +108,7 @@ document.querySelectorAll('.delete-quantity-link').forEach((link) => {
     link.addEventListener('click', () => {
         const productId = link.dataset.productId;
         deleteCartItem(productId);
+        updatePriceSummary();
         const cartItemContainer = document.querySelector(`.js-cart-item-container-${productId}`);
         if (cartItemContainer) {
             cartItemContainer.remove();
@@ -175,6 +176,58 @@ document.querySelectorAll('.delivery-option-input').forEach((input) => {
 // Initial price calculation
 updatePriceSummary();
 
+// Add new function to update cart quantity displays
+const updateCartQuantityDisplay = () => {
+    const cartLength = cart.length;
+    const quantityText = `${cartLength} item${cartLength !== 1 ? 's' : ''}`;
+    
+    const elements = {
+        '.cart-quantity': quantityText,
+        '.cart-items-count': cartLength
+    };
+
+    Object.entries(elements).forEach(([selector, value]) => {
+        const element = document.querySelector(selector);
+        if (element) {
+            element.innerText = value;
+        }
+    });
+
+    // Hide cart section if empty
+    const cartSection = document.querySelector('.order-summary');
+    if (cartSection) {
+        cartSection.style.display = cartLength === 0 ? 'none' : 'block';
+    }
+};
+
+// Update the delete event listener
+document.querySelectorAll('.delete-quantity-link').forEach((link) => {
+    link.addEventListener('click', () => {
+        const productId = link.dataset.productId;
+        deleteCartItem(productId);
+        
+        // Update UI elements
+        updatePriceSummary();
+        updateCartQuantityDisplay();
+        
+        // Remove cart item container
+        const cartItemContainer = document.querySelector(`.js-cart-item-container-${productId}`);
+        if (cartItemContainer) {
+            cartItemContainer.remove();
+        }
+    });
+});
+
 // Update cart quantity displays
-document.querySelector('.cart-quantity').innerText = `${cart.length} items`;
-document.querySelector('.cart-items-count').innerText = cart.length;
+updateCartQuantityDisplay();
+
+//add to cart button
+document.querySelector('.place-your-order').addEventListener('click',()=>{
+    orders.push({
+        id: Date.now(),
+        items: cart,
+        totalPrice: (calculateTotalPrice().finalTotal + (calculateTotalPrice().finalTotal / 10)), // Assuming tax is 10%
+        deliveryDate: getDeliveryDate(7) // Assuming default delivery date for the order
+    });
+    localStorage.setItem('orders', JSON.stringify(orders));
+})
